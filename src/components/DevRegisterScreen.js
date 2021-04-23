@@ -2,16 +2,45 @@ import axios from "axios";
 import React, { Fragment, useEffect, useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import Swal from "sweetalert2";
-import { useForm } from "../hooks/useForm";
 import "./styles.css";
 
 const { Group, Label, Control } = Form;
 
 const urlSkills = "https://test-67158.firebaseio.com/skills.json";
-const urlRegister = "https://test-67158.firebaseio.com/data/:id/.json";
+const url = "https://test-67158.firebaseio.com/data.json";
 
 export const DevRegisterScreen = ({ history }) => {
+  const [data, setData] = useState([]);
   const [skills, setSkills] = useState([]);
+  const [state, setState] = useState({
+    id,
+    name: "",
+    lastname: "",
+    skill: "Android",
+  });
+
+  const { name, lastname, skill } = state;
+
+  const getUsersData = async () => {
+    try {
+      const { data } = await axios.get(`${url}`);
+
+      setData(data);
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Something went wrong!",
+      });
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    getUsersData();
+  }, []);
+
+  const id = data.length;
 
   const getSkills = async () => {
     try {
@@ -28,21 +57,47 @@ export const DevRegisterScreen = ({ history }) => {
     }
   };
 
-  const [formRegisterValues, handleRegisterInputChange] = useForm({
-    name: "Test1",
-    lastname: "Test1LN",
-    skill: "",
-  });
-
-  const { name, lastname, skill } = formRegisterValues;
-
   useEffect(() => {
     getSkills();
   }, []);
 
-  const handleRegister = () => {
-    console.log(skill);
-    // history.replace("/");
+  const handleRegister = (e) => {
+    e.preventDefault();
+
+    let letters = /^[A-Za-z]+$/;
+    if (!name.match(letters)) {
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "El nombre solo debe tener letras",
+      });
+    } else if (!lastname.match(letters)) {
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "El apellido solo debe tener letras",
+      });
+    } else {
+      const registerUser = async () => {
+        try {
+          const registro = await axios.put(
+            `https://test-67158.firebaseio.com/data/${id}/.json`,
+            state
+          );
+          console.log(registro.data);
+          return registro.data;
+        } catch (error) {
+          Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "Error al registrar usuario",
+          });
+          console.error(error);
+        }
+      };
+      registerUser();
+      history.replace("/");
+    }
   };
 
   return (
@@ -52,20 +107,34 @@ export const DevRegisterScreen = ({ history }) => {
         <hr />
         <Group>
           <Label>Ingrese Nombre</Label>
-          <Control type="text" placeholder="Nombre" />
+          <Control
+            type="text"
+            placeholder="Nombre"
+            value={name || ""}
+            onChange={(e) => setState({ ...state, name: e.target.value })}
+          />
         </Group>
         <Group>
-          <Label>Ingrese primer Apellido</Label>
-          <Control type="text" placeholder="Apellido" />
+          <Label>Ingrese Apellido</Label>
+          <Control
+            type="text"
+            placeholder="Apellido"
+            value={lastname || ""}
+            onChange={(e) => setState({ ...state, lastname: e.target.value })}
+          />
         </Group>
         <Group>
           <Label>Seleccione Skill</Label>
-          <Control as="select">
+          <Control
+            value={skill}
+            onChange={(e) => setState({ ...state, skill: e.target.value })}
+            as="select"
+          >
             {skills &&
               skills.length > 0 &&
               skills.map(({ name }) => (
                 <Fragment key={name}>
-                  <option value={skill}>{name}</option>
+                  <option>{name}</option>
                 </Fragment>
               ))}
           </Control>
@@ -73,7 +142,7 @@ export const DevRegisterScreen = ({ history }) => {
         <Button
           className="btn btn-primary"
           type="submit"
-          onClick={handleRegister()}
+          onClick={handleRegister}
         >
           Registrar
         </Button>
