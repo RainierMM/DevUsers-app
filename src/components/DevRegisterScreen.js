@@ -13,7 +13,7 @@ export const DevRegisterScreen = ({ history }) => {
   const [data, setData] = useState([]);
   const [skills, setSkills] = useState([]);
   const [state, setState] = useState({
-    id,
+    id: 0,
     name: "",
     lastname: "",
     skill: "Android",
@@ -26,6 +26,7 @@ export const DevRegisterScreen = ({ history }) => {
       const { data } = await axios.get(`${url}`);
 
       setData(data);
+      setState({ ...state, id: data.length });
     } catch (error) {
       Swal.fire({
         icon: "error",
@@ -39,8 +40,6 @@ export const DevRegisterScreen = ({ history }) => {
   useEffect(() => {
     getUsersData();
   }, []);
-
-  const id = data.length;
 
   const getSkills = async () => {
     try {
@@ -61,7 +60,7 @@ export const DevRegisterScreen = ({ history }) => {
     getSkills();
   }, []);
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
 
     let letters = /^[A-Za-z]+$/;
@@ -78,25 +77,26 @@ export const DevRegisterScreen = ({ history }) => {
         text: "El apellido solo debe tener letras",
       });
     } else {
-      const registerUser = async () => {
-        try {
-          const registro = await axios.put(
-            `https://test-67158.firebaseio.com/data/${id}/.json`,
-            state
-          );
-          console.log(registro.data);
-          return registro.data;
-        } catch (error) {
-          Swal.fire({
-            icon: "error",
-            title: "Oops...",
-            text: "Error al registrar usuario",
-          });
-          console.error(error);
-        }
-      };
-      registerUser();
+      try {
+        const registro = await axios.put(
+          `https://test-67158.firebaseio.com/data/${state.id}/.json`,
+          state
+        );
+        Swal.fire({
+          icon: "success",
+          title: "Congrats...",
+          text: "Desarrollador registrado",
+        });
+      } catch (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Error al registrar usuario",
+        });
+        console.error(error);
+      }
       history.replace("/");
+      console.log(state);
     }
   };
 

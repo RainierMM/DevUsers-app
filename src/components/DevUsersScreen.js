@@ -15,7 +15,6 @@ export const DevUsersScreen = () => {
   const getUsersData = async () => {
     try {
       const { data } = await axios.get(`${url}`);
-
       setData(data);
       setLoading(false);
     } catch (error) {
@@ -33,8 +32,6 @@ export const DevUsersScreen = () => {
     getUsersData();
   }, []);
 
-  console.log(data);
-
   return (
     <div className="container">
       {loading ? (
@@ -43,9 +40,9 @@ export const DevUsersScreen = () => {
         <>
           {data &&
             data.length > 0 &&
-            data.map(({ id, lastname, name, skill }) => (
-              <Fragment key={id}>
-                <Card className="ml-2" style={{ width: "18rem" }}>
+            data.map(({ lastname, name, skill }, index) => (
+              <Fragment key={index}>
+                <Card className="ml-2 mb-2" style={{ width: "18rem" }}>
                   <Body>
                     <Title>
                       {name}
